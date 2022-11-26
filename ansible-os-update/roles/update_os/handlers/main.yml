@@ -1,0 +1,12 @@
+---
+# handlers file for update_os
+
+#- name: yum log to file
+#  delegate_to: localhost
+#  become: false
+#  template:
+#       src: logfile_yum.j2
+#       dest: "{{ playbook_dir }}/log/{{ ansible_hostname }}_{{ ansible_default_ipv4.address  }}_log"
+#       owner: ugrep
+#       group: ugrep
+#       mode:  0640

@@ -1,0 +1,36 @@
+---
+- name: check if host is online
+  include: ping.yml
+  tags: always
+
+- name: Start system upgrade
+  block:
+    - name: decide to proceed
+      setup:
+      tags: always
+    
+    - name: include update playbook
+      include_tasks:
+          file: update.yml
+          apply:
+             tags: update_os
+      tags: always
+ 
+    - name: include reboot playbook
+      include_tasks:
+         file: reboot.yml
+         apply:
+            tags: reboot_singal
+      tags: always
+
+    - name: include vmtools playbook
+      include_tasks: 
+          file: install_vmtools.yml
+          apply:
+             tags:  vmtools
+      tags: always
+
+  when:  > 
+    ( ping.failed is defined and ping.failed == false ) or  
+    ( ping2.failed is defined and ping2.failed == false )
+

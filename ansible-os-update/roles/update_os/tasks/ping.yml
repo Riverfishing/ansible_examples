@@ -1,0 +1,20 @@
+---
+- name: test if linux is alive
+  block:
+  - name: 1st ping linux
+    ping:
+    register: ping
+    failed_when: false
+    ignore_unreachable: yes
+    ignore_errors: yes
+ 
+  - name: 2nd ping linux
+    ping:
+    register: ping2
+    failed_when: false
+    ignore_unreachable: yes
+    ignore_errors: yes
+    when: >
+        (ping.failed is defined and ping.failed == true) or
+        (ping.unreachable is defined and ping.unreacheable == true)
+  when: (ansible_connection is defined) and ((ansible_connection == 'ssh') or (ansible_connection == ''))

@@ -1,0 +1,41 @@
+---
+- name: create log directory
+  delegate_to: localhost
+  run_once: true
+  file: 
+     path: "{{ playbook_dir }}/log"
+     state: directory
+     mode: 0750
+
+- name: start update os
+  shell: "{{ update_os_url }}"
+  args:
+     warn: no
+  changed_when: false
+  register: output
+
+#- name: start update os
+#  script:  files/test.sh
+#  changed_when: false
+#  register: output
+
+- name: Create the log file for the updated packages.
+  delegate_to: localhost
+  copy:
+    content: "{{ output.stdout_lines  | join('\n') }}"
+    dest: "{{ playbook_dir }}/log/{{ ansible_hostname }}_{{ ansible_default_ipv4.address  }}_log"
+    owner: ugrep
+    group: ugrep
+    mode:  0640 
+
+- name: Judge whether the upgrade is successful
+  delegate_to: localhost 
+  shell: tail -10 {{ playbook_dir }}/log/{{ ansible_hostname }}_{{ ansible_default_ipv4.address  }}_log | grep Complete && echo $? 
+  ignore_errors: true
+  changed_when: false
+  register: judge
+
+- name: alert if host has not been updated
+  fail:
+    msg: "{{ ansible_default_ipv4.address }} update os failed, manual check needed"
+  when: judge.rc != 0

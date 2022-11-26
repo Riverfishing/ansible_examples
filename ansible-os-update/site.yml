@@ -1,0 +1,6 @@
+---
+- name: update os
+  gather_facts: no
+  hosts: test
+  roles:
+      - update_os

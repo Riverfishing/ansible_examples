@@ -1,0 +1,32 @@
+---
+- name: Judge whether the upgrade is successful
+  delegate_to: localhost 
+  shell: tail -10 {{ playbook_dir }}/log/{{ ansible_hostname }}_{{ ansible_default_ipv4.address  }}_log | grep Complete && echo $? 
+  ignore_errors: yes
+  changed_when: false
+  register: judge
+
+- name: reboot the server from script
+  script: files/reboot.sh {{ ansible_default_ipv4.address }}
+  ignore_errors: yes
+  changed_when: false
+  when: judge.rc == 0
+
+- name: wait for to finish reboot
+  wait_for_connection:
+     delay: 180
+
+- name: check if host has booted within last 5min
+  shell: test $( cat /proc/uptime | cut -d. -f1) -lt 300
+  ignore_errors: yes
+  changed_when: false
+  register:  reboot_check
+
+#- name: debug reboot_check
+#  debug:
+#    msg: "{{ reboot_check.rc  }}"
+
+- name: alert if host has not been rebooted
+  fail:
+    msg: "{{ ansible_default_ipv4.address }} has  not booted, manual check needed"
+  when: reboot_check.rc != 0

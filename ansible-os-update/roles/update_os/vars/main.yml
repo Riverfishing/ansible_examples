@@ -1,0 +1,5 @@
+---
+# vars file for update_os
+
+update_os_url: curl --noproxy '*' http://192.168.205.10/install/update_os.sh | bash
+install_vmtools_url: curl  --noproxy  '*'  http://192.168.205.10/install/install_vmtools.sh | bash

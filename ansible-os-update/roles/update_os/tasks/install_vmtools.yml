@@ -1,0 +1,37 @@
+---
+
+- name: Install  VMtools
+  block:
+#    - name: start install vmtools 
+#      script:  files/install_vmtools.sh
+#      changed_when: false
+#      register: vmtools_output
+
+    - name: start install vmtools 
+      shell:  "{{ install_vmtools_url }}"
+      changed_when: false
+      args:
+           warn:  no
+      register: vmtools_output
+
+
+    - name: Create the log file 
+      delegate_to: localhost
+      changed_when: false
+      copy:
+          content: "{{ vmtools_output.stdout_lines  | join('\n') }}"
+          dest: "{{ playbook_dir }}/log/{{ ansible_hostname }}_{{ ansible_default_ipv4.address  }}_vmtools_log"
+          owner: ugrep
+          group: ugrep
+          mode:  0640 
+    - name: Judge whether install vmtools is successful
+      delegate_to: localhost 
+      shell:  grep  -i error {{ playbook_dir }}/log/{{ ansible_hostname }}_{{ ansible_default_ipv4.address  }}_vmtools_log &&  echo $?
+      ignore_errors: true
+      changed_when: false
+      register: judge_vmtools
+
+    - name: alert install vmtools
+      fail:
+         msg: "{{ ansible_default_ipv4.address }} install vmtools failed, manual check needed"
+      when: judge_vmtools == 0
